@@ -124,7 +124,7 @@ export default function Sidebar() {
           {!collapsed && (
             <div className="min-w-0 flex-1">
               <h1 className="font-bold text-base leading-tight">SITELUR</h1>
-              <p className="text-[10px] text-gray-400 leading-tight">Tata Kelola Rapat RSUD</p>
+              <p className="text-[10px] text-gray-400 leading-tight">Sistem Informasi Tindak Lanjut Rapat Terukur</p>
             </div>
           )}
           <button

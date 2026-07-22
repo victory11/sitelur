@@ -56,10 +56,10 @@ export default function LoginContent() {
               <div className="w-14 h-14 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-3xl">🏥</div>
               <div>
                 <h1 className="text-2xl font-bold">SITELUR</h1>
-                <p className="text-xs text-white/80">Tata Kelola Rapat RSUD</p>
+                <p className="text-xs text-white/80">Sistem Informasi Tindak Lanjut Rapat Terukur</p>
               </div>
             </div>
-            <h2 className="text-3xl font-bold mb-3 leading-tight">Selamat Datang di Portal<br />Manajemen Rapat RSUD</h2>
+            <h2 className="text-3xl font-bold mb-3 leading-tight">Selamat Datang di Portal<br />Manajemen Rapat <br /> RSUD Patut Patuh Patju Kab. Lombok Barat</h2>
             <p className="text-white/80 text-sm">Kelola rapat, notulensi, dan tindak lanjut secara digital.</p>
           </div>
           <div className="relative space-y-3 mt-8">
@@ -68,13 +68,13 @@ export default function LoginContent() {
             <div className="flex items-center gap-3 text-sm"><div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">🖨️</div><span>Cetak notulen otomatis</span></div>
             <div className="flex items-center gap-3 text-sm"><div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">📊</div><span>Dashboard analitik real-time</span></div>
           </div>
-          <div className="relative text-xs text-white/60 mt-8">© 2026 RSUD — SITELUR v1.0</div>
+          <div className="relative text-xs text-white/60 mt-8">© 2026 IT-RSUD Tripat — SITELUR v1.0</div>
         </div>
 
         <div className="p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
           <div className="lg:hidden flex items-center gap-3 mb-6">
             <div className="w-12 h-12 bg-[#1A6EB5] rounded-xl flex items-center justify-center text-2xl">🏥</div>
-            <div><h1 className="text-xl font-bold text-[#1C2A3A]">SITELUR</h1><p className="text-xs text-gray-500">Tata Kelola Rapat RSUD</p></div>
+            <div><h1 className="text-xl font-bold text-[#1C2A3A]">SITELUR</h1><p className="text-xs text-gray-500">Sistem Informasi Tindak Lanjut Rapat Terukur</p></div>
           </div>
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-[#1C2A3A]">Masuk ke Akun Anda</h2>
