@@ -1,9 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useToast } from "./Toast";
-
 type Tab = "pegawai" | "tempat" | "unit" | "jenis";
-
 interface Pegawai {
   idPegawai: string;
   namaLengkap: string;
@@ -15,28 +13,24 @@ interface Pegawai {
   role: string;
   status: string;
 }
-
 interface Tempat {
   idTempat: string;
   namaTempat: string;
   kapasitas: number | null;
   status: string;
 }
-
 interface Unit {
   idUnit: string;
   namaUnit: string;
   kepalaUnit: string;
   status: string;
 }
-
 interface JenisRapat {
   idJenis: string;
   namaJenis: string;
   kodeSingkat: string;
   status: string;
 }
-
 export default function MasterDataContent() {
   const [tab, setTab] = useState<Tab>("pegawai");
   const [pegawaiList, setPegawaiList] = useState<Pegawai[]>([]);
@@ -47,10 +41,11 @@ export default function MasterDataContent() {
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData] = useState<Record<string, string | number | null> | null>(null);
   const { showToast } = useToast();
-
   // Form states
   const [formData, setFormData] = useState<Record<string, string>>({});
-
+  const updateField = useCallback((field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  }, []);
   const fetchAll = async () => {
     setLoading(true);
     try {
@@ -69,17 +64,14 @@ export default function MasterDataContent() {
     }
     setLoading(false);
   };
-
   useEffect(() => {
     fetchAll();
   }, []);
-
   const openAdd = () => {
     setEditData(null);
     setFormData({});
     setShowModal(true);
   };
-
   const openEdit = (data: Record<string, string | number | null>) => {
     setEditData(data);
     const fd: Record<string, string> = {};
@@ -89,7 +81,6 @@ export default function MasterDataContent() {
     setFormData(fd);
     setShowModal(true);
   };
-
   const handleSave = async () => {
     try {
       const apiMap: Record<Tab, string> = {
@@ -99,56 +90,75 @@ export default function MasterDataContent() {
         jenis: "/api/master/jenis-rapat",
       };
       const method = editData ? "PUT" : "POST";
-      await fetch(apiMap[tab], {
+      const res = await fetch(apiMap[tab], {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-      showToast(editData ? "Data berhasil diupdate" : "Data berhasil ditambahkan", "success");
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed");
+      }
+      showToast(
+        editData
+          ? "Data berhasil diupdate (termasuk sinkronisasi user)"
+          : "Data berhasil ditambahkan",
+        "success"
+      );
       setShowModal(false);
       fetchAll();
     } catch {
       showToast("Gagal menyimpan data", "error");
     }
   };
-
   const tabs: { key: Tab; label: string; icon: string }[] = [
     { key: "pegawai", label: "Pegawai", icon: "👤" },
     { key: "tempat", label: "Tempat", icon: "🏢" },
     { key: "unit", label: "Unit Kerja", icon: "🏗️" },
     { key: "jenis", label: "Jenis Rapat", icon: "📋" },
   ];
-
   const renderFormFields = () => {
     switch (tab) {
       case "pegawai":
         return (
           <>
-            <FormField label="Nama Lengkap" field="namaLengkap" required />
-            <FormField label="NIP" field="nip" />
-            <FormField label="Jabatan" field="jabatan" />
-            <FormField label="Unit Kerja" field="unitKerja" />
-            <FormField label="Email" field="email" type="email" />
-            <FormField label="No. HP" field="noHp" />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap <span className="text-red-500">*</span></label>
+              <input type="text" value={formData.namaLengkap || ""} onChange={(e) => updateField("namaLengkap", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1A6EB5]/20 focus:border-[#1A6EB5] outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">NIP</label>
+              <input type="text" value={formData.nip || ""} onChange={(e) => updateField("nip", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1A6EB5]/20 focus:border-[#1A6EB5] outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Jabatan</label>
+              <input type="text" value={formData.jabatan || ""} onChange={(e) => updateField("jabatan", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1A6EB5]/20 focus:border-[#1A6EB5] outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Unit Kerja</label>
+              <input type="text" value={formData.unitKerja || ""} onChange={(e) => updateField("unitKerja", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1A6EB5]/20 focus:border-[#1A6EB5] outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input type="email" value={formData.email || ""} onChange={(e) => updateField("email", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1A6EB5]/20 focus:border-[#1A6EB5] outline-none" />
+              <p className="text-xs text-gray-400 mt-1">Email ini akan otomatis tersinkronisasi dengan akun user</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">No. HP</label>
+              <input type="text" value={formData.noHp || ""} onChange={(e) => updateField("noHp", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1A6EB5]/20 focus:border-[#1A6EB5] outline-none" />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-              <select
-                value={formData.role || "viewer"}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
-              >
-                <option value="admin">Admin</option>
-                <option value="notulis">Notulis</option>
-                <option value="viewer">Viewer</option>
+              <select value={formData.role || "viewer"} onChange={(e) => updateField("role", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                <option value="admin">⚡ Admin</option>
+                <option value="notulis">📝 Notulis</option>
+                <option value="viewer">👁️ Viewer</option>
               </select>
+              <p className="text-xs text-gray-400 mt-1">Role akan otomatis tersinkronisasi dengan akun user</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select
-                value={formData.status || "Aktif"}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
-              >
+              <select value={formData.status || "Aktif"} onChange={(e) => updateField("status", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
                 <option value="Aktif">Aktif</option>
                 <option value="Non-Aktif">Non-Aktif</option>
               </select>
@@ -158,15 +168,17 @@ export default function MasterDataContent() {
       case "tempat":
         return (
           <>
-            <FormField label="Nama Tempat" field="namaTempat" required />
-            <FormField label="Kapasitas" field="kapasitas" type="number" />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nama Tempat <span className="text-red-500">*</span></label>
+              <input type="text" value={formData.namaTempat || ""} onChange={(e) => updateField("namaTempat", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1A6EB5]/20 focus:border-[#1A6EB5] outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Kapasitas</label>
+              <input type="number" value={formData.kapasitas || ""} onChange={(e) => updateField("kapasitas", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1A6EB5]/20 focus:border-[#1A6EB5] outline-none" />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select
-                value={formData.status || "Aktif"}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
-              >
+              <select value={formData.status || "Aktif"} onChange={(e) => updateField("status", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
                 <option value="Aktif">Aktif</option>
                 <option value="Non-Aktif">Non-Aktif</option>
               </select>
@@ -176,15 +188,17 @@ export default function MasterDataContent() {
       case "unit":
         return (
           <>
-            <FormField label="Nama Unit" field="namaUnit" required />
-            <FormField label="Kepala Unit" field="kepalaUnit" />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nama Unit <span className="text-red-500">*</span></label>
+              <input type="text" value={formData.namaUnit || ""} onChange={(e) => updateField("namaUnit", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1A6EB5]/20 focus:border-[#1A6EB5] outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Kepala Unit</label>
+              <input type="text" value={formData.kepalaUnit || ""} onChange={(e) => updateField("kepalaUnit", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1A6EB5]/20 focus:border-[#1A6EB5] outline-none" />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select
-                value={formData.status || "Aktif"}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
-              >
+              <select value={formData.status || "Aktif"} onChange={(e) => updateField("status", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
                 <option value="Aktif">Aktif</option>
                 <option value="Non-Aktif">Non-Aktif</option>
               </select>
@@ -194,15 +208,17 @@ export default function MasterDataContent() {
       case "jenis":
         return (
           <>
-            <FormField label="Nama Jenis" field="namaJenis" required />
-            <FormField label="Kode Singkat" field="kodeSingkat" required />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nama Jenis <span className="text-red-500">*</span></label>
+              <input type="text" value={formData.namaJenis || ""} onChange={(e) => updateField("namaJenis", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1A6EB5]/20 focus:border-[#1A6EB5] outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Kode Singkat <span className="text-red-500">*</span></label>
+              <input type="text" value={formData.kodeSingkat || ""} onChange={(e) => updateField("kodeSingkat", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1A6EB5]/20 focus:border-[#1A6EB5] outline-none" />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select
-                value={formData.status || "Aktif"}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
-              >
+              <select value={formData.status || "Aktif"} onChange={(e) => updateField("status", e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
                 <option value="Aktif">Aktif</option>
                 <option value="Non-Aktif">Non-Aktif</option>
               </select>
@@ -211,33 +227,6 @@ export default function MasterDataContent() {
         );
     }
   };
-
-  function FormField({
-    label,
-    field,
-    type = "text",
-    required = false,
-  }: {
-    label: string;
-    field: string;
-    type?: string;
-    required?: boolean;
-  }) {
-    return (
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          {label} {required && <span className="text-red-500">*</span>}
-        </label>
-        <input
-          type={type}
-          value={formData[field] || ""}
-          onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1A6EB5]/20 focus:border-[#1A6EB5] outline-none"
-        />
-      </div>
-    );
-  }
-
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -255,7 +244,6 @@ export default function MasterDataContent() {
           Tambah {tabs.find((t) => t.key === tab)?.label}
         </button>
       </div>
-
       {/* Tabs */}
       <div className="flex gap-1 bg-white rounded-xl shadow-sm border border-gray-100 p-1.5 mb-6 overflow-x-auto">
         {tabs.map((t) => (
@@ -270,7 +258,15 @@ export default function MasterDataContent() {
           </button>
         ))}
       </div>
-
+      {/* Sync info banner for pegawai */}
+      {tab === "pegawai" && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 flex items-start gap-2">
+          <span className="text-blue-500">🔄</span>
+          <p className="text-xs text-blue-700">
+            Data pegawai (email, role, status) akan <strong>otomatis tersinkronisasi</strong> dengan tabel Manajemen User saat disimpan.
+          </p>
+        </div>
+      )}
       {/* Content */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {loading ? (
@@ -287,6 +283,7 @@ export default function MasterDataContent() {
                     <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Nama</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Jabatan</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Unit</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Email</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Role</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Status</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Aksi</th>
@@ -299,6 +296,7 @@ export default function MasterDataContent() {
                       <td className="py-2.5 px-4 font-medium">{p.namaLengkap}</td>
                       <td className="py-2.5 px-4 text-gray-600">{p.jabatan || "-"}</td>
                       <td className="py-2.5 px-4 text-gray-600">{p.unitKerja || "-"}</td>
+                      <td className="py-2.5 px-4 text-gray-600 font-mono text-xs">{p.email || "-"}</td>
                       <td className="py-2.5 px-4">
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${p.role === "admin" ? "bg-purple-100 text-purple-700" : p.role === "notulis" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700"}`}>
                           {p.role}
@@ -319,7 +317,6 @@ export default function MasterDataContent() {
                 </tbody>
               </table>
             )}
-
             {tab === "tempat" && (
               <table className="w-full text-sm">
                 <thead>
@@ -338,21 +335,16 @@ export default function MasterDataContent() {
                       <td className="py-2.5 px-4 font-medium">{t.namaTempat}</td>
                       <td className="py-2.5 px-4 text-gray-600">{t.kapasitas || "-"}</td>
                       <td className="py-2.5 px-4">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${t.status === "Aktif" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                          {t.status}
-                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${t.status === "Aktif" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>{t.status}</span>
                       </td>
                       <td className="py-2.5 px-4">
-                        <button onClick={() => openEdit(t as unknown as Record<string, string | number | null>)} className="text-[#1A6EB5] hover:underline text-xs font-medium">
-                          Edit
-                        </button>
+                        <button onClick={() => openEdit(t as unknown as Record<string, string | number | null>)} className="text-[#1A6EB5] hover:underline text-xs font-medium">Edit</button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             )}
-
             {tab === "unit" && (
               <table className="w-full text-sm">
                 <thead>
@@ -371,21 +363,16 @@ export default function MasterDataContent() {
                       <td className="py-2.5 px-4 font-medium">{u.namaUnit}</td>
                       <td className="py-2.5 px-4 text-gray-600">{u.kepalaUnit || "-"}</td>
                       <td className="py-2.5 px-4">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.status === "Aktif" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                          {u.status}
-                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.status === "Aktif" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>{u.status}</span>
                       </td>
                       <td className="py-2.5 px-4">
-                        <button onClick={() => openEdit(u as unknown as Record<string, string | number | null>)} className="text-[#1A6EB5] hover:underline text-xs font-medium">
-                          Edit
-                        </button>
+                        <button onClick={() => openEdit(u as unknown as Record<string, string | number | null>)} className="text-[#1A6EB5] hover:underline text-xs font-medium">Edit</button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             )}
-
             {tab === "jenis" && (
               <table className="w-full text-sm">
                 <thead>
@@ -406,14 +393,10 @@ export default function MasterDataContent() {
                         <span className="px-2 py-0.5 bg-blue-50 text-[#1A6EB5] rounded text-xs font-mono font-bold">{j.kodeSingkat}</span>
                       </td>
                       <td className="py-2.5 px-4">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${j.status === "Aktif" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                          {j.status}
-                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${j.status === "Aktif" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>{j.status}</span>
                       </td>
                       <td className="py-2.5 px-4">
-                        <button onClick={() => openEdit(j as unknown as Record<string, string | number | null>)} className="text-[#1A6EB5] hover:underline text-xs font-medium">
-                          Edit
-                        </button>
+                        <button onClick={() => openEdit(j as unknown as Record<string, string | number | null>)} className="text-[#1A6EB5] hover:underline text-xs font-medium">Edit</button>
                       </td>
                     </tr>
                   ))}
@@ -423,11 +406,10 @@ export default function MasterDataContent() {
           </div>
         )}
       </div>
-
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-[#1C2A3A]">
                 {editData ? "Edit" : "Tambah"} {tabs.find((t) => t.key === tab)?.label}
