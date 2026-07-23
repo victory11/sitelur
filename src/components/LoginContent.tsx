@@ -123,7 +123,7 @@ export default function LoginContent() {
                 </div>
               </button>
             </div>
-            <p className="text-[10px] text-gray-400 mt-3 text-center">Password default semua akun: <span className="font-mono font-semibold">sitelur123</span></p>
+            <p className="text-[10px] text-gray-400 mt-3 text-center">Created by :<span className="font-mono font-semibold">IT RSUD Tripat</span></p>
           </div>
         </div>
       </div>
